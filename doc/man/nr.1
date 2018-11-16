@@ -1,0 +1,46 @@
+.TH NR 1
+.SH NR
+nr \- read the news
+.SH SYNOPSIS
+Read the news in your terminal from a list of configurable sources.
+.PP
+.B nr
+[
+.I stuff...
+]
+.SH DESCRIPTION
+News Reader (nr) removes the need to open a web-browser in order to get
+the latest news.
+The program was written out of the author's own want for a curses based
+news reader, without having to resort to lynx, w3m, or any console web
+browser.
+
+By default all requests are cached for 1 hour so nr doesn't constantly
+pull down the same content.
+.SH COMMANDS
+.TP
+.BR Enter
+View the article
+.TP
+.BR b
+Return to the article list
+.TP
+.BR r
+Refresh the list of articles (clear the cache)
+.TP
+.BR q
+Exit NR
+.TP
+.BR j / k
+Scroll up and down just like vim
+.SH FILES
+.br
+.nf
+\fI.config/nr.ini\fR	file containing list of sites [see\fB nr-config\fR(5)]
+.SH NOTES
+Currently the config file is not implemented and the only site supported
+is NPR, which is hardcoded.
+.SH AUTHOR
+Written by Trevor Bramwell <\fItrevor@bramwell.net\fR>
+.SH "SEE ALSO"
+.BR nr-config (5)

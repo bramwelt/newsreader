@@ -1,0 +1,11 @@
+# Python Files
+build/
+dist/
+.tox/
+*.py[co]
+venv/
+*.egg-info
+
+*.swp
+*.sqlite
+*.log
