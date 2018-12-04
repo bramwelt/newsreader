@@ -1,0 +1,16 @@
+---
+stages:
+  - test
+
+before_script:
+  - pip install tox
+
+pycodestyle:
+  image: python:3-slim
+  stage: test
+  script: tox -e pycodestyle
+
+pylint:
+  image: python:3-slim
+  stage: test
+  script: tox -e pylint
