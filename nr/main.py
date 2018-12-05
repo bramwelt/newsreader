@@ -29,7 +29,7 @@ urwid.command_map['ctrl b'] = 'cursor page up'
 urwid.command_map['ctrl f'] = 'cursor page down'
 
 
-class Site(object):
+class Site():
     """News site containing links to news articles
        (ex: text.npr.org, lite.cnn.org)"""
 
@@ -80,7 +80,7 @@ class Article(urwid.Button):
                     self.text.append(urwid.Text(par.text))
 
 
-class App(object):
+class App():
     """Newsreader App
 
     This is the main view for newsreader and contains a browsable list
