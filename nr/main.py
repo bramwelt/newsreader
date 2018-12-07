@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 # import logging
 # logging.basicConfig(filename='nr.log', level=logging.INFO)
 
+
 # Transparently cache requests so we don't constantly hit the server,
 # and expire any old values when newsreader is started.
 requests_cache.install_cache('nr_cache', expire_after=timedelta(hours=1))
@@ -55,29 +56,43 @@ class Site():
         return self.articles
 
 
-class Article(urwid.Button):
+class Article(urwid.SelectableIcon):
     """News Article - A button that when clicked displays the article"""
-    button_left = urwid.Text("")
-    button_right = urwid.Text("")
 
-    def __init__(self, label, link, on_press=None, user_data=None):
-        super(Article, self).__init__(label, on_press, user_data)
+    def __init__(self, text, link):
+        # Set the cursor to just beyond the article text so it is
+        # 'hidden'
+        curs_pos = len(text)+1
+        super(Article, self).__init__(text, cursor_position=curs_pos)
         self.link = link
-        self.text = []
+        self.parsed = False
+        self.body = []
+
+    def keypress(self, size, key):
+        """Handle keypresses by emitting signals"""
+        if key == 'enter':
+            # Emit a 'select' event so we can handle key presses in
+            # another place.
+            urwid.emit_signal(self, 'select', self)
+            return None
+        return key
 
     def parse(self):
         """Parse an article and extract the contents"""
-        if not self.text:
+        if not self.parsed:
             page = requests.get(self.link)
             soup = BeautifulSoup(page.content, 'html.parser')
             for i, par in enumerate(soup.body.find_all('p')[2:]):
                 # NPR Specific
                 if i < 2:
-                    self.text.append(
+                    self.body.append(
                         urwid.AttrMap(urwid.Text(par.text), 'bold'))
                 else:
-                    self.text.append(urwid.Divider())
-                    self.text.append(urwid.Text(par.text))
+                    self.body.append(urwid.Divider())
+                    self.body.append(urwid.Text(par.text))
+
+
+urwid.register_signal(Article, 'select')
 
 
 class App():
@@ -115,7 +130,7 @@ class App():
         view"""
         self.body = [urwid.Text("News"), urwid.Divider(u'-')]
         for article in self.articles:
-            urwid.connect_signal(article, 'click', self.show_article)
+            urwid.connect_signal(article, 'select', self.show_article)
             self.body.append(
                 urwid.AttrMap(article, None, focus_map='reversed'))
 
@@ -125,7 +140,7 @@ class App():
     def show_article(self, article):
         """Display the selected article in a new window"""
         article.parse()
-        self.view.body = article.text
+        self.view.body = article.body
         self.loop.widget = urwid.Padding(
             self.view,
             align='center',
