@@ -5,6 +5,7 @@ Newsreader - Main
 Copyright (c) 2018 Trevor Bramwell <trevor@bramwell.net>
 SPDX-License-Identifier: Apache-2.0
 """
+from string import digits
 from datetime import timedelta
 
 import urwid
@@ -126,13 +127,16 @@ class App():
         self.articles = site.get_articles()
 
     def refresh(self):
-        """Clear the cache and update the list of articles in the main
+        """Update the list of articles in the main
         view"""
         self.body = [urwid.Text("News"), urwid.Divider(u'-')]
-        for article in self.articles:
+        for i, article in enumerate(self.articles):
             urwid.connect_signal(article, 'select', self.show_article)
+            article_num = (3, urwid.Text(str(i+1), align='right'))
+            column_div = (1, urwid.Divider())
+            column = urwid.Columns([article_num, column_div, article])
             self.body.append(
-                urwid.AttrMap(article, None, focus_map='reversed'))
+                urwid.AttrMap(column, None, focus_map='reversed'))
 
         self.main = urwid.ListBox(urwid.SimpleFocusListWalker(self.body))
         self.view = urwid.ListBox([])
@@ -147,21 +151,26 @@ class App():
             width=('relative', 40),
             min_width=70)
 
-    def close_article(self):
-        """Closes the article by setting the view back to the article
+    def hide_article(self):
+        """Hides the article by setting the view back to the article
         browser"""
         self.loop.widget = self.main
 
     def other_input(self, key):
         """Handle application inputs"""
         if key in ('b',):
-            self.close_article()
+            self.hide_article()
         if key in ('r',):
+            # Clear the cache and update the article list
             requests_cache.core.remove_expired_responses()
             self.pull_articles()
             self.refresh()
-            # This is used as a misnomer
-            self.close_article()
+            self.hide_article()
+        if key in digits:
+            row = int(key)
+            if row == 0:
+                row = 10
+            self.main.set_focus(row+1)
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()
 
