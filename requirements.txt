@@ -1,0 +1,4 @@
+urwid
+requests
+requests-cache
+beautifulsoup4

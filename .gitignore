@@ -2,6 +2,7 @@
 build/
 dist/
 .tox/
+.eggs/
 *.py[co]
 venv/
 *.egg-info
