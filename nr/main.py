@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 """
 from string import digits
 from datetime import timedelta
+from configparser import SafeConfigParser
+from os.path import expanduser
 
 import urwid
 from urwid import curses_display
@@ -29,6 +31,11 @@ urwid.command_map['k'] = 'cursor up'
 urwid.command_map['j'] = 'cursor down'
 urwid.command_map['ctrl b'] = 'cursor page up'
 urwid.command_map['ctrl f'] = 'cursor page down'
+
+
+def getlist(option):
+    """ConfigParser method for extracting list from config file"""
+    return [item.strip() for item in option.split(',')]
 
 
 class Site():
@@ -102,14 +109,30 @@ class App():
     This is the main view for newsreader and contains a browsable list
     of articles.
     """
+    defaults = {
+        'newsreader': {
+            'width': 40,
+            'align': 'center',
+            'sites': 'https://text.npr.org',
+        },
+    }
+
     def __init__(self):
         """App Initialization"""
+        self.init_config()
         self.pull_articles()
         self.refresh()
         self.palette = [
             ('reversed', 'standout', ''),
             ('bold', 'default,bold', '')]
         self.loop = None
+
+    def init_config(self):
+        """Initialize configuration from a config file"""
+        self.config = SafeConfigParser(converters={'list': getlist})
+        self.config.read_dict(self.defaults)
+        self.config.read(['nr.ini', expanduser('~/.config/nr.ini')],
+                         encoding='utf-8')
 
     def run(self):
         """Starts the main loop"""
@@ -120,11 +143,22 @@ class App():
             unhandled_input=self.other_input)
         self.loop.run()
 
+    def get_config(self, item):
+        """Curry function to get configuration from the config file"""
+        section = 'newsreader'
+        if item in ['width']:
+            return self.config.getint(section, item)
+        if item in ['sites']:
+            return self.config.getlist(section, item)  # pylint: disable=E1101
+        return self.config.get(section, item)
+
     def pull_articles(self):
         """Downloads the list of articles"""
-        site = Site('https://text.npr.org')
-        site.parse()
-        self.articles = site.get_articles()
+        self.articles = []
+        for site in self.get_config('sites'):
+            tmp_site = Site(site)
+            tmp_site.parse()
+            self.articles.extend(tmp_site.get_articles())
 
     def refresh(self):
         """Update the list of articles in the main
@@ -147,9 +181,11 @@ class App():
         self.view.body = article.body
         self.loop.widget = urwid.Padding(
             self.view,
-            align='center',
-            width=('relative', 40),
-            min_width=70)
+            align=self.get_config('align'),
+            width=('relative', self.get_config('width')),
+            min_width=72,
+            left=2,
+            right=2)
 
     def hide_article(self):
         """Hides the article by setting the view back to the article
