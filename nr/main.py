@@ -72,6 +72,7 @@ class Article(urwid.SelectableIcon):
         # 'hidden'
         curs_pos = len(text)+1
         super(Article, self).__init__(text, cursor_position=curs_pos)
+        self.site = "NPR"
         self.link = link
         self.parsed = False
         self.body = []
@@ -166,9 +167,13 @@ class App():
         self.body = [urwid.Text("News"), urwid.Divider(u'-')]
         for i, article in enumerate(self.articles):
             urwid.connect_signal(article, 'select', self.show_article)
+            article_source = (5, urwid.Text("[%s]" % article.site))
+            date = (10, urwid.Text("2018/01/04", align='right'))
             article_num = (3, urwid.Text(str(i+1), align='right'))
             column_div = (1, urwid.Divider())
-            column = urwid.Columns([article_num, column_div, article])
+            column = urwid.Columns([article_num, column_div,
+                                    article, column_div, date,
+                                    column_div, article_source])
             self.body.append(
                 urwid.AttrMap(column, None, focus_map='reversed'))
 
