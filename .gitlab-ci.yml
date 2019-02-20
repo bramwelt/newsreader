@@ -20,7 +20,8 @@ package-build:
   stage: build
   image: python:3
   script: python setup.py sdist bdist_wheel
-  cache:
+  artifacts:
+      expire_in: 1 day
       paths:
           - build/
           - dist/
