@@ -1,24 +1,58 @@
 ---
+image: python:3-slim
 stages:
-  - test
+  - verify
+  - build
+  - publish
 
 before_script:
   - pip install tox
 
 pycodestyle:
-  image: python:3-slim
-  stage: test
+  stage: verify
   script: tox -e pycodestyle
 
 pylint:
-  image: python:3-slim
-  stage: test
+  stage: verify
   script: tox -e pylint
+
+package-build:
+  stage: build
+  image: python:3
+  script: python setup.py sdist bdist_wheel
+  cache:
+      paths:
+          - build/
+          - dist/
+  only:
+      - master@bramwelt/newsreader
+
+publish-to-test:
+    stage: publish
+    before_script:
+        - pip install twine
+    script: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    only:
+        - master@bramwelt/newsreader
+    dependencies:
+        - package-build
+
+publish-to-prod:
+    stage: publish
+    script: twine upload dist/
+    environment:
+        name: production
+    dependencies:
+        - package-build
+    only:
+        - tags
+        - master@bramwelt/newsreader
 
 # This job comes from Gitlab
 # https://gitlab.com/help/ci/examples/sast.md
 sast:
   image: docker:stable
+  stage: verify
   variables:
     DOCKER_DRIVER: overlay2
   allow_failure: true
