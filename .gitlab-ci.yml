@@ -40,6 +40,8 @@ publish-to-test:
 
 publish-to-prod:
     stage: publish
+    before_script:
+        - pip install twine
     script: twine upload dist/*
     only:
         - tags
