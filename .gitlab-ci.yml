@@ -30,6 +30,9 @@ package-build:
 
 publish-to-test:
     stage: publish
+    variables:
+        TWINE_USERNAME: $PYPI_TEST_USERNAME
+        TWINE_PASSWORD: $PYPI_TEST_PASSWORD
     before_script:
         - pip install twine
     script: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
@@ -40,6 +43,9 @@ publish-to-test:
 
 publish-to-prod:
     stage: publish
+    variables:
+        TWINE_USERNAME: $PYPI_PROD_USERNAME
+        TWINE_PASSWORD: $PYPI_PROD_PASSWORD
     before_script:
         - pip install twine
     script: twine upload dist/*
@@ -47,8 +53,6 @@ publish-to-prod:
         - tags
     dependencies:
         - package-build
-    environment:
-        name: production
 
 # This job comes from Gitlab
 # https://gitlab.com/help/ci/examples/sast.md
