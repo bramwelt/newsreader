@@ -6,7 +6,7 @@ Copyright (c) 2018 Trevor Bramwell <trevor@bramwell.net>
 SPDX-License-Identifier: Apache-2.0
 """
 from string import digits
-from datetime import timedelta
+from datetime import timedelta, date
 from configparser import SafeConfigParser
 from os.path import expanduser
 
@@ -102,11 +102,14 @@ class App():
         for i, article in enumerate(self.articles):
             urwid.connect_signal(article, 'select', self.show_article)
             article_source = (5, urwid.Text("[%s]" % article.site))
-            date = (10, urwid.Text("2018/01/04", align='right'))
+            article_date = (
+                10,
+                urwid.Text(date.today().isoformat(), align='right')
+            )
             article_num = (3, urwid.Text(str(i+1), align='right'))
             column_div = (1, urwid.Divider())
             column = urwid.Columns([article_num, column_div,
-                                    article, column_div, date,
+                                    article, column_div, article_date,
                                     column_div, article_source])
             self.body.append(
                 urwid.AttrMap(column, None, focus_map='reversed'))
