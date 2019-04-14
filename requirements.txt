@@ -1,4 +1,6 @@
 urwid
 requests
 requests-cache
+lxml
 beautifulsoup4
+html5lib
