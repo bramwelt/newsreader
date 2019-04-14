@@ -9,6 +9,7 @@ from string import digits
 from datetime import timedelta, date
 from configparser import SafeConfigParser
 from os.path import expanduser
+import logging
 
 import urwid
 from urwid import curses_display
@@ -17,8 +18,11 @@ import requests_cache
 
 from .site import Site
 
-# import logging
-# logging.basicConfig(filename='nr.log', level=logging.INFO)
+logging.basicConfig(
+    filename='/tmp/newsreader.log',
+    level=logging.INFO,
+    filemode='w')
+LOGGER = logging.getLogger(__name__)
 
 
 # Transparently cache requests so we don't constantly hit the server,
@@ -144,6 +148,7 @@ class App():
 
     def other_input(self, key):
         """Handle application inputs"""
+        LOGGER.debug("Input: %s", key)
         # Clicks are passed in 'key' as an (x, y) value
         if isinstance(key, (list, tuple)):
             return True
@@ -168,6 +173,7 @@ class App():
 
 def main():
     """Run the app"""
+    LOGGER.debug("---- Application Start ----")
     App().run()
 
 
