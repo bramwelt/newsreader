@@ -4,9 +4,12 @@ Newsreader - Article
 Copyright (c) 2018 Trevor Bramwell <trevor@bramwell.net>
 SPDX-License-Identifier: Apache-2.0
 """
+import logging
 import urwid
 import requests
 from bs4 import BeautifulSoup
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Article(urwid.SelectableIcon):
@@ -45,19 +48,27 @@ class Article(urwid.SelectableIcon):
             soup = BeautifulSoup(page.content, 'html5lib')
             program = False
             for i, par in enumerate(soup.body.find_all('p')):
+                LOGGER.debug("Line %d, %d: %s", i, len(par.contents),
+                             repr(par))
                 if i == 0:
+                    LOGGER.debug("skip header")
                     self.body.append(urwid.Divider())
                 elif i == 1:
                     if not par.string == "Home":
+                        LOGGER.debug("> program")
                         program = True
+                    else:
+                        LOGGER.debug("> homelink")
                 # First paragraph is assumed to be the title
                 elif i == 2:
                     self.title = par.text
+                    LOGGER.debug("Title: %s", self.title)
                     self.body.append(urwid.Text(('bold', self.title)))
                     self.body.append(urwid.Divider())
                 # Second paragraph the author
                 elif i == 3:
                     self.author = par.text[3:]
+                    LOGGER.debug("Author: %s", self.author)
                     self.body.append(
                         urwid.Text(('bold', "By %s" % self.author)))
                 # Third "NPR.org, <date> &middot;"
@@ -65,6 +76,7 @@ class Article(urwid.SelectableIcon):
                     partitioned_text = par.text.partition(" · ")
                     if not program:
                         self.date = partitioned_text[0].lstrip("NPR.org, ")
+                        LOGGER.debug("Date: %s", self.date)
                         self.body.append(urwid.Text(('bold', self.date)))
                     self.body.append(urwid.Divider('—'))
                     self.body.append(urwid.Text(partitioned_text[2]))
@@ -74,9 +86,12 @@ class Article(urwid.SelectableIcon):
                     if not par.contents and par.text != "":
                         continue
                     for child in par.children:
+                        LOGGER.debug("Child: %s", repr(child))
                         if not child.name:
                             if child.string:
                                 line.append(child.string)
+                            else:
+                                LOGGER.error("Unknown tag: %s", repr(child))
                         elif child.name in ["b", "strong", "h3"]:
                             if child.string:
                                 line.append(('bold', child.string))
@@ -92,8 +107,11 @@ class Article(urwid.SelectableIcon):
                         elif child.name in ["hr"]:
                             self.body.append(urwid.Divider('—'))
                     if line:
+                        LOGGER.debug("Line: %s", line)
                         self.body.append(urwid.Divider())
                         self.body.append(urwid.Text(line))
+                    else:
+                        LOGGER.error("Parsing failed on %d, %s", i, repr(par))
                 # Last is (c) NPR
 
 
