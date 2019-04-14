@@ -23,7 +23,9 @@ from .site import Site
 
 # Transparently cache requests so we don't constantly hit the server,
 # and expire any old values when newsreader is started.
-requests_cache.install_cache('nr_cache', expire_after=timedelta(hours=1))
+requests_cache.install_cache(
+    expanduser('~/.cache/newsreader'),
+    expire_after=timedelta(hours=1))
 requests_cache.core.remove_expired_responses()
 
 # Remap up/down pageup/pagedown to VIM bindings
@@ -59,7 +61,11 @@ class App():
         self.refresh()
         self.palette = [
             ('reversed', 'standout', ''),
-            ('bold', 'default,bold', '')]
+            ('bold', 'default,bold', ''),
+            ('underline', 'default,underline', ''),
+            # Note: italics does not appear to be fully supported by
+            # urwid
+            ('italics', 'italics', '')]
         self.loop = None
 
     def init_config(self):
@@ -98,7 +104,7 @@ class App():
     def refresh(self):
         """Update the list of articles in the main
         view"""
-        self.body = [urwid.Text("News"), urwid.Divider(u'-')]
+        self.body = [urwid.Text("News"), urwid.Divider(u'—')]
         for i, article in enumerate(self.articles):
             urwid.connect_signal(article, 'select', self.show_article)
             article_source = (5, urwid.Text("[%s]" % article.site))
@@ -136,6 +142,9 @@ class App():
 
     def other_input(self, key):
         """Handle application inputs"""
+        # Clicks are passed in 'key' as an (x, y) value
+        if isinstance(key, (list, tuple)):
+            return True
         if key in ('b',):
             self.hide_article()
         if key in ('r',):
@@ -151,6 +160,8 @@ class App():
             self.main.set_focus(row+1)
         if key in ('q', 'Q'):
             raise urwid.ExitMainLoop()
+
+        return key
 
 
 def main():
