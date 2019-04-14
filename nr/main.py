@@ -31,6 +31,8 @@ requests_cache.core.remove_expired_responses()
 # Remap up/down pageup/pagedown to VIM bindings
 urwid.command_map['k'] = 'cursor up'
 urwid.command_map['j'] = 'cursor down'
+urwid.command_map['['] = 'cursor page up'
+urwid.command_map[']'] = 'cursor page down'
 urwid.command_map['ctrl b'] = 'cursor page up'
 urwid.command_map['ctrl f'] = 'cursor page down'
 
